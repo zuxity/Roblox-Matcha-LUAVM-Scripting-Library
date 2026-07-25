@@ -1,5 +1,5 @@
 -- ============================================================================
--- FSSHaxx V1.1 - FIFA Super Soccer Script
+-- FSSHaxx V1.2 - FIFA Super Soccer Script
 -- Environment: Matcha LuaVM
 -- UI Library: INS UI
 -- ============================================================================
@@ -12,7 +12,7 @@ local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/neaxusxgo
 -- 2. Create the Main Window
 local win = Lib:CreateWindow({
     title        = "FSSHaxx",
-    subtitle     = "V1.1",
+    subtitle     = "V1.2",
     size         = Vector2.new(650, 450),
     menuKey      = "p",
     configName   = "fsshaxx_v1",
