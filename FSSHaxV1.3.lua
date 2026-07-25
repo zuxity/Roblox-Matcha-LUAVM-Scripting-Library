@@ -1,5 +1,5 @@
 -- ============================================================================
--- FSSHaxx V1.2 - FIFA Super Soccer Script
+-- FSSHaxx V1.3 - FIFA Super Soccer Script
 -- Environment: Matcha LuaVM
 -- UI Library: INS UI
 -- ============================================================================
@@ -12,7 +12,7 @@ local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/neaxusxgo
 -- 2. Create the Main Window
 local win = Lib:CreateWindow({
     title        = "FSSHaxx",
-    subtitle     = "V1.2",
+    subtitle     = "V1.3",
     size         = Vector2.new(650, 450),
     menuKey      = "p",
     configName   = "fsshaxx_v1",
@@ -25,34 +25,68 @@ local win = Lib:CreateWindow({
 -- Add the built-in Settings tab (configs, themes, performance)
 win:AddSettingsTab("cog")
 
--- 3. Create Tab and Section
+-- 3. Create Tab and Sections
 local mainTab = win:Tab("Features", "swords")
 local mechanicsSec = mainTab:Section("Match Mechanics", "Left")
+local goalpostSec = mainTab:Section("Goalpost Controls", "Right") -- New dedicated section
 
 -- ============================================================================
--- FEATURE 1: Goalpost Extender (Button)
+-- FEATURE 1: Dynamic Goalpost Extender
 -- ============================================================================
-mechanicsSec:Button("Extend Goalposts", function()
+
+-- Helper function to apply the size safely and avoid code duplication
+local function applyGoalpostSize(x, y, z)
+    local newSize = Vector3.new(x, y, z)
+    
     -- Use pcall to prevent the script from crashing if the workspace path changes
     local success, err = pcall(function()
-        local newSize = Vector3.new(99, 99, 99)
-        
-        -- Modify Away Team Goal
         local awayGoal = game.Workspace.Stadium.Teams.Away.Goal.Hitbox
         awayGoal.Size = newSize
         
-        -- Modify Home Team Goal
         local homeGoal = game.Workspace.Stadium.Teams.Home.Goal.Hitbox
         homeGoal.Size = newSize
     end)
 
     if success then
-        Lib:Notify("FSSHaxx", "Goalposts extended successfully!", 3, "success")
+        Lib:Notify("FSSHaxx", "Goalpost size updated to (" .. x .. ", " .. y .. ", " .. z .. ")", 3, "success")
     else
         Lib:Notify("FSSHaxx", "Failed: " .. tostring(err), 3, "error")
         warn("Goalpost Extender Error: " .. tostring(err))
     end
-end):Tooltip("Makes both goal hitboxes massive (99x99x99).")
+end
+
+-- A. Uniform Slider: Dynamically scales X, Y, and Z together
+goalpostSec:Slider("Uniform Size", 99, 1, 1, 200, "", function(v)
+    applyGoalpostSize(v, v, v)
+end):Tooltip("Dynamically scales X, Y, and Z to the same value instantly.")
+
+-- Visual separator for better UI organization
+goalpostSec:Divider("Custom XYZ")
+
+-- B. Three Textboxes for precise X, Y, Z control
+local currentX, currentY, currentZ = "99", "99", "99"
+
+goalpostSec:Textbox("Size X", "99", function(text)
+    currentX = text
+end):Tooltip("Enter exact X dimension")
+
+goalpostSec:Textbox("Size Y", "99", function(text)
+    currentY = text
+end):Tooltip("Enter exact Y dimension")
+
+goalpostSec:Textbox("Size Z", "99", function(text)
+    currentZ = text
+end):Tooltip("Enter exact Z dimension")
+
+-- C. Apply Button: Reads the textboxes and applies the custom size
+goalpostSec:Button("Apply Custom XYZ", function()
+    -- tonumber ensures we convert the string input to a number, defaulting to 99 if invalid
+    local x = tonumber(currentX) or 99
+    local y = tonumber(currentY) or 99
+    local z = tonumber(currentZ) or 99
+    
+    applyGoalpostSize(x, y, z)
+end):Tooltip("Applies the exact X, Y, and Z values from the boxes above.")
 
 -- ============================================================================
 -- FEATURE 2: Infinite Stamina (Toggle with Loop)
@@ -86,4 +120,4 @@ end):Tooltip("Continuously regenerates stamina using setgc.")
 -- Startup Notification
 -- ============================================================================
 task.wait(1)
-Lib:Notify("FSSHaxx", "Loaded successfully. Press 'P' to toggle menu.", 4, "info")
+Lib:Notify("FSSHaxx", "Loaded successfully (V1.3). Press 'P' to toggle menu.", 4, "info")
