@@ -1,4 +1,4 @@
--- Keephaxx V1 -- Teleportation Hub (Matcha-safe CFrame fix)
+-- Keephaxx V1.1 -- Teleportation Hub (Matcha-safe CFrame fix + spotlight off)
 -- Uses only Matcha-safe API: Players.LocalPlayer, Character, FindFirstChild,
 -- BasePart.Position / CFrame, Vector3, CFrame (3-arg form only).
 
@@ -7,13 +7,18 @@ local Players = game:GetService("Players")
 
 -- ============ WINDOW ============
 local win = Lib:CreateWindow({
-    title    = "Keephaxx V1",
-    subtitle = "v1",
-    size     = Vector2.new(700, 540),
-    menuKey  = "p",
-    accent   = Color3.fromRGB(160, 90, 255),
-    smartFps = true,
+    title     = "Keephaxx V1",
+    subtitle  = "v1",
+    size      = Vector2.new(700, 540),
+    menuKey   = "p",
+    accent    = Color3.fromRGB(160, 90, 255),
+    smartFps  = true,
+    search    = "Off",     -- hides the title-bar search box
+    gameInput = false,     -- menu holds input while open (default, explicit)
 })
+
+-- Fully disable the spotlight: no Ctrl+Space, no palette, no title-bar trigger.
+Lib:SetSpotlight(false)
 
 local mainTab = win:Tab("Main", "home")
 local mainSec = mainTab:Section("Welcome", "Full")
