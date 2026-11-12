@@ -1,4 +1,4 @@
--- Keephaxx V1.2 -- Teleportation Hub (Matcha-safe CFrame fix + spotlight off)
+-- Keephaxx V1.2 -- Teleportation Hub + Rapid Slash
 -- Uses only Matcha-safe API: Players.LocalPlayer, Character, FindFirstChild,
 -- BasePart.Position / CFrame, Vector3, CFrame (3-arg form only).
 
@@ -8,27 +8,67 @@ local Players = game:GetService("Players")
 -- ============ WINDOW ============
 local win = Lib:CreateWindow({
     title     = "Keephaxx V1",
-    subtitle  = "v1",
+    subtitle  = "1.2",
     size      = Vector2.new(700, 540),
     menuKey   = "p",
     accent    = Color3.fromRGB(160, 90, 255),
     smartFps  = true,
-    search    = "Off",     -- hides the title-bar search box
-    gameInput = true,      -- releases input when cursor leaves the window
+    search    = "Off",
+    gameInput = true,
 })
 
--- Fully disable the spotlight: no Ctrl+Space, no palette, no title-bar trigger.
 Lib:SetSpotlight(false)
 
+-- ============ MAIN TAB ============
 local mainTab = win:Tab("Main", "home")
 local mainSec = mainTab:Section("Welcome", "Full")
 mainSec:Label("Keephaxx V1 -- Main features coming in v2.")
 mainSec:Info("For now, use the Teleportation tab on the left.")
 
+-- ============ RAPID SLASH ============
+local combatSec = mainTab:Section("Combat", "Left", "hold LMB to spam click")
+
+local rapidSlashCPS = 20
+local rsEnabled     = false
+local RS_KEY        = 0x56  -- Windows VK code for V; change here if you rebind
+
+local rsToggle = combatSec:Toggle("Rapid Slash", false, function(on)
+    rsEnabled = on
+    if on then
+        Lib:Notify("Rapid Slash", "enabled -- hold V to slash", 2, "success")
+    else
+        Lib:Notify("Rapid Slash", "disabled", 2, "info")
+    end
+end)
+rsToggle:SetRisk()
+rsToggle:Tooltip("Hold V while Rapid Slash is enabled to spam clicks.")
+
+combatSec:Slider("CPS", 20, 1, 5, 50, " cps", function(v)
+    rapidSlashCPS = v
+end):Tooltip("Clicks per second while holding the rapid slash key.")
+
+-- Use iskeypressed (Windows VK) + isrbxactive() exactly like Blockverse does
+task.spawn(function()
+    local nextClick = 0
+    while true do
+        local now = os.clock()
+        if rsEnabled
+            and isrbxactive()
+            and iskeypressed(RS_KEY)
+            and now >= nextClick
+        then
+            mouse1click()
+            nextClick = now + (1 / rapidSlashCPS)
+        end
+        task.wait(0.016) -- ~60hz poll
+    end
+end)
+
+combatSec:Slider("CPS", 20, 1, 5, 50, " cps", function(v)
+    rapidSlashCPS = v
+end):Tooltip("Clicks per second while Rapid Slash is active.")
+
 -- ============ TELEPORT HELPER ============
--- MATCHA QUIRK: CFrame.new on this LuaVM only accepts 0, 3, 6, or 12 args.
--- A Vector3 (1-arg) throws "expects 0, 3, 6, or 12 arguments".
--- So we always pass x, y, z as three separate numbers.
 local function teleport(name, pos)
     local char = Players.LocalPlayer.Character
     local hrp  = char and char:FindFirstChild("HumanoidRootPart")
@@ -36,12 +76,10 @@ local function teleport(name, pos)
         Lib:Notify("Teleport", "No character loaded", 2, "error")
         return
     end
-    -- 3-arg CFrame.new -- the form Matcha's emulator actually supports.
     hrp.CFrame = CFrame.new(pos.X, pos.Y, pos.Z)
     Lib:Notify("Teleported", name, 2, "success")
 end
 
--- Build a run of buttons from a coordinate list.
 local function buildSection(tab, title, side, info, list, risky)
     local sec = tab:Section(title, side, info)
     for _, e in ipairs(list) do
